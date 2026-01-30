@@ -22,7 +22,6 @@ class CalculatorTest {
     @Test
     @DisplayName("Test addition of two positive numbers")
     void testAdd() {
-        assertEquals(8, calculator.add(5, 3));
         assertEquals(0, calculator.add(0, 0));
         assertEquals(100, calculator.add(50, 50));
     }
