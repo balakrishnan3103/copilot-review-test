@@ -80,7 +80,7 @@ public class Calculator {
     }
 
     // ISSUE 7: Empty catch block
-    public int parseNumberss(String str) {
+    public int parseNumbersss(String str) {
         try {
             return Integer.parseInt(str);
         } catch (NumberFormatException e) {
