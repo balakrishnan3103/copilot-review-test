@@ -1,11 +1,13 @@
 # Sample Java Project
 
-A simple Java project demonstrating basic Maven project structure with a Calculator application.
+A simple Java project demonstrating basic Maven project structure with a Calculator application and GitHub Copilot integration.
 
 ## Project Structure
 
 ```
 copilot-review-test/
+├── .github/
+│   └── copilot-instructions.md               # GitHub Copilot guidelines
 ├── pom.xml                                    # Maven configuration
 ├── src/
 │   ├── main/
@@ -19,15 +21,16 @@ copilot-review-test/
 │           └── com/
 │               └── example/
 │                   └── CalculatorTest.java   # Unit tests for Calculator
-└── README.md
+└── README.md                                  # Project documentation
 ```
 
 ## Features
 
 - **Calculator Class**: Basic arithmetic operations (add, subtract, multiply, divide)
 - **Main Application**: Demonstrates usage of the Calculator class
-- **Unit Tests**: JUnit 5 tests for the Calculator class
+- **Unit Tests**: JUnit 5 tests for the Calculator class (5 tests, all passing)
 - **Maven Build**: Standard Maven project structure
+- **GitHub Copilot Integration**: Instructions for intelligent code reviews
 
 ## Requirements
 
@@ -76,45 +79,28 @@ Hello, World!
 ```
 ## GitHub Copilot Integration
 
-This project includes GitHub Copilot instructions to provide intelligent code reviews and suggestions:
+This project includes `.github/copilot-instructions.md` which tells GitHub Copilot how to review your code.
 
-### 📋 Copilot Instructions File
-`.github/copilot-instructions.md` contains:
+### What's Included
+
+The instructions file contains:
 - Code style guidelines (Java conventions, formatting)
 - Testing standards (JUnit 5 best practices)
 - Documentation requirements (Javadoc standards)
 - Error handling patterns
-- Common anti-patterns to avoid
-- Project-specific guidelines
+- Common patterns to use and anti-patterns to avoid
 
-### 🤖 How It Works
-
-When you:
-- **Write code**: Copilot suggests code that follows project guidelines
-- **Create PRs**: Automated reviews check code against standards
-- **Ask questions**: Copilot Chat understands project context
-
-### 🚀 Getting Started with Copilot
+### How to Use
 
 1. **Install GitHub Copilot** in your IDE (VS Code, IntelliJ IDEA, etc.)
-2. **Open this project** - Copilot will automatically read the instructions
-3. **Start coding** - Get context-aware suggestions
-4. **Create a PR** - See automated review comments
+2. **Open this project** - Copilot automatically reads `.github/copilot-instructions.md`
+3. **Start coding** - Get suggestions that follow project guidelines
+4. **Create a PR** - Copilot reviews based on the instructions (requires Enterprise/Business)
 
-For detailed setup instructions, see [COPILOT_SETUP.md](COPILOT_SETUP.md)
+### Try Copilot Chat
 
-### ✨ Example Features
-
-Try asking GitHub Copilot Chat:
-- "How should I document a new method in Calculator.java?"
-- "What test cases should I add for a square root function?"
-- "Review my code against the project guidelines"
-- "Generate a new arithmetic method following project standards"
-
-### 📝 Pull Request Template
-
-The project includes a PR template (`.github/PULL_REQUEST_TEMPLATE.md`) that:
-- Guides contributors through the review checklist
-- Ensures all guidelines are considered
-- References Copilot instructions for automated reviews
+Ask questions like:
+- "Review this code against the project guidelines"
+- "How should I document this method?"
+- "What test cases should I add?"
 

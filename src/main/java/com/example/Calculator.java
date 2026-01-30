@@ -48,4 +48,54 @@ public class Calculator {
         }
         return (double) a / b;
     }
+
+    // ISSUE 1: Missing Javadoc - violates "All public methods must have Javadoc"
+    public int modulo(int a, int b) {
+        return a % b;  // ISSUE 2: No input validation for division by zero
+    }
+
+    // ISSUE 3: Missing proper Javadoc structure (no @param, @return)
+    // Calculates power
+    public double power(int base, int exponent) {
+        return Math.pow(base, exponent);
+    }
+
+    // ISSUE 4: Magic number without constant
+    public int calculate(int x) {
+        return x * 100;  // What does 100 represent?
+    }
+
+    // ISSUE 5: Using System.out.println instead of logging
+    public void printResult(int result) {
+        System.out.println("Result: " + result);
+    }
+
+    // ISSUE 6: Catching generic Exception
+    public int readValue(String input) {
+        try {
+            return Integer.parseInt(input);
+        } catch (Exception e) {  // Should catch NumberFormatException specifically
+            return 0;
+        }
+    }
+
+    // ISSUE 7: Empty catch block
+    public int parseNumber(String str) {
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            // Empty catch - no logging or handling
+        }
+        return 0;
+    }
+
+    /**
+     * Calculates square root
+     * @param n the number
+     * @return square root
+     */
+    // ISSUE 8: Missing input validation (no check for negative numbers)
+    public double sqrt(int n) {
+        return Math.sqrt(n);
+    }
 }

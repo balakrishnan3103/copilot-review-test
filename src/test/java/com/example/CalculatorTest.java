@@ -30,7 +30,7 @@ class CalculatorTest {
     @Test
     @DisplayName("Test subtraction of two numbers")
     void testSubtract() {
-        //assertEquals(2, calculator.subtract(5, 3));
+        assertEquals(2, calculator.subtract(5, 3));
         assertEquals(0, calculator.subtract(5, 5));
         assertEquals(-5, calculator.subtract(0, 5));
     }
