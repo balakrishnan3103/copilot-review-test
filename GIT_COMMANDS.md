@@ -183,6 +183,28 @@ Then go to GitHub and create a Pull Request from `test/copilot-review-demo` to `
 
 ---
 
+## 🔄 Rename Branch
+
+If you need to rename a branch (e.g., `test/add-new-method-commented` → `test/demo-code-review`):
+
+```bash
+# Method 1: Rename current branch (you're on the branch)
+git branch -m test/demo-code-review
+git push origin --delete test/add-new-method-commented
+git push origin test/demo-code-review
+git push origin -u test/demo-code-review
+
+# Method 2: Rename another branch (not currently on it)
+git branch -m old-branch-name new-branch-name
+git push origin --delete old-branch-name
+git push origin new-branch-name
+git push origin -u new-branch-name
+```
+
+**See [GIT_BRANCH_RENAME.md](GIT_BRANCH_RENAME.md) for detailed guide**
+
+---
+
 ## 📊 Common Git Commands Reference
 
 ```bash
