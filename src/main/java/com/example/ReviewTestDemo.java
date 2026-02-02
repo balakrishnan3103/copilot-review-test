@@ -5,7 +5,7 @@ package com.example;
  */
 public class ReviewTestDemo {
 
-    // ISSUE: Missing Javadoc
+    // ISSUE: Missing Javadoc for public method
     public int addNumbers(int a, int b) {
         System.out.println("Adding numbers: " + a + " + " + b);  // ISSUE: System.out.println
         return a + b;

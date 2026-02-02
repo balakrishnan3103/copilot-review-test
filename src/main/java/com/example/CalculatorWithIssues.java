@@ -7,7 +7,7 @@ package com.example;
  */
 public class CalculatorWithIssues {
 
-    // ISSUE 1: Missing Javadoc for public method
+    // ISSUE 1: Missing Javadoc for public metho
     public int calculate(int x) {
         return x * 100;  // ISSUE 2: Magic number
     }
