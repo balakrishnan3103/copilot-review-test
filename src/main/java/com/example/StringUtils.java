@@ -91,4 +91,51 @@ public class StringUtils {
         }
         return result;
     }
+
+    // ISSUE: Null pointer - no null check on input
+    public int getLength(String text) {
+        return text.length();  // ISSUE: NullPointerException if text is null
+    }
+
+    // ISSUE: Null pointer - no null check before method call
+    public String toUpperCase(String input) {
+        return input.toUpperCase();  // ISSUE: NullPointerException if input is null
+    }
+
+    // ISSUE: Multiple null pointer issues
+    public String extractFirstWord(String sentence) {
+        String[] words = sentence.split(" ");  // ISSUE: NPE if sentence is null
+        return words[0].trim();  // ISSUE: NPE if words[0] is null
+    }
+
+    // ISSUE: Null pointer in comparison
+    public boolean startsWith(String text, String prefix) {
+        return text.startsWith(prefix);  // ISSUE: NPE if text or prefix is null
+    }
+
+    // ISSUE: Null pointer with array access
+    public String getFirstItem(String[] items) {
+        return items[0];  // ISSUE: NPE if items is null, ArrayIndexOutOfBounds if empty
+    }
+
+    // ISSUE: Chained method calls without null checks
+    public int getWordCount(String text) {
+        return text.trim().split(" ").length;  // ISSUE: NPE if text is null
+    }
+
+    // ISSUE: Null pointer in string operations
+    public String concatenateWithSeparator(String a, String b, String separator) {
+        return a + separator + b;  // ISSUE: NPE if any parameter is null
+    }
+
+    // ISSUE: Dereferencing potentially null object
+    public String processUser(User user) {
+        return user.getName().toUpperCase();  // ISSUE: NPE if user is null or getName() returns null
+    }
+
+    // Helper class for demonstration
+    static class User {
+        private String name;
+        public String getName() { return name; }
+    }
 }
