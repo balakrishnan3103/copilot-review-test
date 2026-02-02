@@ -78,49 +78,74 @@ jobs:
             const instructions = fs.readFileSync('.github/copilot-instructions.md', 'utf8');
             
             // Get the changed files
-            const changedFiles = `${{ steps.changed-files.outputs.all_changed_files }}`.split(' ');
+            const changedFiles = `${{ steps.changed-files.outputs.all_changed_files }}`.split(' ').filter(f => f);
             
             console.log('Changed files:', changedFiles);
             
             // Review rules from instructions
             const reviewChecks = [
               {
-                name: 'Null Safety',
-                pattern: /\bnull\b/g,
-                message: '⚠️ Potential null pointer issue detected. Ensure proper null checks are in place.'
+                name: 'System.out.println Usage',
+                pattern: /System\.out\.println/g,
+                severity: 'warning',
+                message: 'Using `System.out.println` instead of a proper logging framework (SLF4J).',
+                suggestion: 'Replace with: `logger.info("message")` or `logger.debug("message")`'
               },
               {
-                name: 'Exception Handling',
-                pattern: /catch\s*\(\s*Exception\s+/g,
-                message: '⚠️ Catching generic Exception. Consider catching specific exception types.'
+                name: 'Generic Exception Catching',
+                pattern: /catch\s*\(\s*Exception\s+\w+\s*\)/g,
+                severity: 'warning',
+                message: 'Catching generic `Exception` is too broad.',
+                suggestion: 'Catch specific exceptions like `NumberFormatException`, `IOException`, etc.'
               },
               {
                 name: 'Empty Catch Block',
-                pattern: /catch\s*\([^)]+\)\s*{\s*}/g,
-                message: '❌ Empty catch block detected. Add logging or proper error handling.'
+                pattern: /catch\s*\([^)]+\)\s*\{\s*(\/\/.*\s*)?\}/g,
+                severity: 'error',
+                message: 'Empty catch block detected - exceptions are being silently ignored.',
+                suggestion: 'Add proper error handling: log the error or re-throw it.'
               },
               {
-                name: 'System.out.println',
-                pattern: /System\.out\.println/g,
-                message: '⚠️ Using System.out.println. Consider using a proper logging framework.'
+                name: 'Magic Number',
+                pattern: /(?<![a-zA-Z_])\d{2,}(?![a-zA-Z_0-9])/g,
+                severity: 'info',
+                message: 'Magic number detected.',
+                suggestion: 'Consider extracting to a named constant: `private static final int CONSTANT_NAME = value;`'
               },
               {
-                name: 'Magic Numbers',
-                pattern: /[^a-zA-Z_]\d{2,}[^a-zA-Z_]/g,
-                message: '⚠️ Possible magic number detected. Consider using named constants.'
+                name: 'TODO Comment',
+                pattern: /\/\/\s*TODO[\s:]/gi,
+                severity: 'info',
+                message: 'TODO comment found.',
+                suggestion: 'Create a ticket/issue or implement the pending functionality.'
               },
               {
-                name: 'Missing Javadoc',
-                pattern: /public\s+\w+\s+\w+\s*\([^)]*\)\s*{/g,
-                message: 'ℹ️ Public method detected. Ensure it has proper Javadoc documentation.'
+                name: 'Return Null',
+                pattern: /return\s+null\s*;/g,
+                severity: 'warning',
+                message: 'Returning `null` can lead to NullPointerException.',
+                suggestion: 'Consider using `Optional<T>` or throwing an exception instead.'
               },
               {
-                name: 'TODO Comments',
-                pattern: /\/\/\s*TODO/gi,
-                message: 'ℹ️ TODO comment found. Consider creating a ticket or resolving it.'
+                name: 'Division Without Validation',
+                pattern: /\/\s*[a-zA-Z_]\w*/g,
+                severity: 'warning',
+                message: 'Division operation - ensure denominator is not zero.',
+                suggestion: 'Add validation: `if (divisor == 0) throw new IllegalArgumentException("Cannot divide by zero");`'
               }
             ];
             
+            let allIssues = [];
+            let issuesByFile = {};
+            
+            // Get PR details
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            // Create a review
             let reviewComments = [];
             
             for (const file of changedFiles) {
@@ -130,59 +155,155 @@ jobs:
                 const content = fs.readFileSync(file, 'utf8');
                 const lines = content.split('\n');
                 
+                issuesByFile[file] = [];
+                
                 lines.forEach((line, index) => {
+                  const lineNumber = index + 1;
+                  const trimmedLine = line.trim();
+                  
                   reviewChecks.forEach(check => {
+                    // Reset regex lastIndex
+                    check.pattern.lastIndex = 0;
+                    
                     if (check.pattern.test(line)) {
+                      const issue = {
+                        file: file,
+                        line: lineNumber,
+                        check: check.name,
+                        severity: check.severity,
+                        code: trimmedLine
+                      };
+                      
+                      allIssues.push(issue);
+                      issuesByFile[file].push(issue);
+                      
+                      // Create review comment
+                      const commentBody = `### 🔍 ${check.name}
+
+**Severity:** ${check.severity === 'error' ? '🔴 Error' : check.severity === 'warning' ? '🟡 Warning' : '🔵 Info'}
+
+**Issue:** ${check.message}
+
+**Code:**
+\`\`\`java
+${trimmedLine}
+\`\`\`
+
+**Suggestion:** ${check.suggestion}
+
+---
+📋 Based on [Copilot Instructions](.github/copilot-instructions.md)`;
+                      
                       reviewComments.push({
                         path: file,
-                        line: index + 1,
-                        body: `**${check.name}**\n\n${check.message}\n\nLine: \`${line.trim()}\``,
-                        side: 'RIGHT'
+                        line: lineNumber,
+                        body: commentBody
                       });
+                      
+                      console.log(`Found ${check.name} at ${file}:${lineNumber}`);
                     }
                   });
                 });
-                
-                // Check for missing Javadoc on public methods
-                const hasJavadoc = /\/\*\*[\s\S]*?\*\/\s*public\s+\w+\s+\w+/g;
-                const publicMethods = content.match(/public\s+\w+\s+\w+\s*\([^)]*\)\s*{/g);
-                
-                if (publicMethods) {
-                  console.log(`Found ${publicMethods.length} public methods in ${file}`);
-                }
-                
+
               } catch (error) {
                 console.error(`Error reading file ${file}:`, error.message);
               }
             }
             
-            // Create a summary comment
+            // Build detailed summary by file
+            let filesSummary = '';
+            for (const [file, issues] of Object.entries(issuesByFile)) {
+              if (issues.length > 0) {
+                filesSummary += `\n#### 📄 \`${file}\` - ${issues.length} issue(s)\n\n`;
+                
+                // Group by severity
+                const errors = issues.filter(i => i.severity === 'error');
+                const warnings = issues.filter(i => i.severity === 'warning');
+                const infos = issues.filter(i => i.severity === 'info');
+                
+                if (errors.length > 0) {
+                  filesSummary += `**🔴 Errors (${errors.length}):**\n`;
+                  errors.forEach(issue => {
+                    filesSummary += `- Line ${issue.line}: ${issue.check}\n  \`${issue.code}\`\n`;
+                  });
+                }
+
+                if (warnings.length > 0) {
+                  filesSummary += `\n**🟡 Warnings (${warnings.length}):**\n`;
+                  warnings.forEach(issue => {
+                    filesSummary += `- Line ${issue.line}: ${issue.check}\n  \`${issue.code}\`\n`;
+                  });
+                }
+
+                if (infos.length > 0) {
+                  filesSummary += `\n**🔵 Info (${infos.length}):**\n`;
+                  infos.forEach(issue => {
+                    filesSummary += `- Line ${issue.line}: ${issue.check}\n  \`${issue.code}\`\n`;
+                  });
+                }
+              }
+            }
+
+            // Count by severity
+            const totalErrors = allIssues.filter(i => i.severity === 'error').length;
+            const totalWarnings = allIssues.filter(i => i.severity === 'warning').length;
+            const totalInfos = allIssues.filter(i => i.severity === 'info').length;
+            
+            // Create a detailed summary comment
             const summary = `## 🤖 GitHub Copilot Code Review
             
-            ### Review Summary
+            ### 📊 Review Summary
             
-            Based on the [Coding Instructions](.github/copilot-instructions.md), I've reviewed the changes in this PR.
+            Based on the [Coding Instructions](.github/copilot-instructions.md), I've analyzed the changes in this PR.
+
+            **Files Reviewed:** ${changedFiles.filter(f => f).length}
+            **Total Issues:** ${allIssues.length}
             
-            **Files Reviewed:** ${changedFiles.length}
-            **Issues Found:** ${reviewComments.length}
-            
-            ### Key Focus Areas Checked:
-            - ✅ **Null Safety** - Checking for potential NullPointerExceptions
-            - ✅ **Input Validation** - Ensuring all inputs are validated
+            ${allIssues.length > 0 ? `
+            **Breakdown:**
+            - 🔴 **Errors:** ${totalErrors} (Must fix)
+            - 🟡 **Warnings:** ${totalWarnings} (Should fix)
+            - 🔵 **Info:** ${totalInfos} (Consider fixing)
+            ` : ''}
+
+            ### 🔍 Key Focus Areas Checked:
             - ✅ **Exception Handling** - Proper exception catching and handling
             - ✅ **Logging** - Using proper logging framework instead of System.out
             - ✅ **Magic Numbers** - Named constants instead of hardcoded values
-            - ✅ **Documentation** - Javadoc for public methods
-            - ✅ **Code Style** - Following Java naming conventions
-            
-            ${reviewComments.length > 0 ? '### ⚠️ Issues to Address:\n\nPlease review the inline comments for specific recommendations.' : '### ✅ No major issues found!\n\nGreat job following the coding standards!'}
+            - ✅ **Code Quality** - Empty catch blocks, null returns, input validation
+            - ✅ **Documentation** - TODO comments and pending work
+
+            ${allIssues.length > 0 ? `
+            ### 📝 Issues Found:
+            ${filesSummary}
             
             ---
             
-            💡 **Tip:** Review the complete guidelines in [copilot-instructions.md](.github/copilot-instructions.md)
+            ### 💡 Action Required:
+            Please review the **inline comments** on specific lines above. Each comment includes:
+            - 🔍 What the issue is
+            - 💡 Why it's a problem
+            - ✅ How to fix it
+            - 📋 Reference to coding standards
+            ` : `
+            ### ✅ No Issues Found!
+
+            Great job! Your code follows all the coding standards:
+            - ✅ Proper exception handling
+            - ✅ Using SLF4J logging framework
+            - ✅ Named constants for magic numbers
+            - ✅ Input validation present
+            - ✅ No code quality issues detected
+
+            **Keep up the excellent work!** 🎉
+            `}
+
+            ---
+            
+            📚 **Reference:** [Complete Coding Guidelines](.github/copilot-instructions.md)
             `;
             
-            // Post the summary comment
+            // Post the summary comment first
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -190,7 +311,46 @@ jobs:
               body: summary
             });
             
-            console.log(`Posted ${reviewComments.length} review comments`);
+            console.log(`Posted summary with ${allIssues.length} total issues`);
+            
+            // Post inline review comments (limit to 50 to avoid rate limits)
+            const commentsToPost = reviewComments.slice(0, 50);
+            
+            if (commentsToPost.length > 0) {
+              try {
+                // Create a review with comments
+                await github.rest.pulls.createReview({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  event: allIssues.filter(i => i.severity === 'error').length > 0 ? 'REQUEST_CHANGES' : 'COMMENT',
+                  body: `🤖 Automated code review completed. Found ${allIssues.length} issue(s). See inline comments for details.`,
+                  comments: commentsToPost
+                });
+                
+                console.log(`Posted ${commentsToPost.length} inline review comments`);
+                
+                if (reviewComments.length > 50) {
+                  await github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `⚠️ **Note:** Found ${reviewComments.length} issues total, but only posted the first 50 inline comments to avoid rate limits. Please review the summary above for all issues.`
+                  });
+                }
+              } catch (error) {
+                console.error('Error posting review comments:', error.message);
+                // Fall back to regular comments if review fails
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `⚠️ Could not post inline review comments due to: ${error.message}\n\nPlease check the summary above for all issues.`
+                });
+              }
+            }
+
+            console.log('Code review complete!');
 
       - name: Code Quality Check
         uses: actions/github-script@v7
