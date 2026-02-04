@@ -446,4 +446,208 @@ class CalculatorTest {
             assertDoesNotThrow(() -> calculator.logResult(0));
         }
     }
+
+    @Nested
+    @DisplayName("Factorial Tests")
+    class FactorialTests {
+
+        @Test
+        @DisplayName("Should calculate factorial of zero")
+        void testFactorialZero() {
+            assertEquals(1, calculator.factorial(0));
+        }
+
+        @Test
+        @DisplayName("Should calculate factorial of one")
+        void testFactorialOne() {
+            assertEquals(1, calculator.factorial(1));
+        }
+
+        @Test
+        @DisplayName("Should calculate factorial of positive numbers")
+        void testFactorialPositive() {
+            assertEquals(2, calculator.factorial(2));
+            assertEquals(6, calculator.factorial(3));
+            assertEquals(24, calculator.factorial(4));
+            assertEquals(120, calculator.factorial(5));
+        }
+
+        @Test
+        @DisplayName("Should throw IllegalArgumentException for negative numbers")
+        void testFactorialNegative() {
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> calculator.factorial(-1)
+            );
+            assertTrue(exception.getMessage().contains("Cannot calculate factorial of negative number"));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "0, 1",
+            "1, 1",
+            "5, 120",
+            "6, 720",
+            "10, 3628800"
+        })
+        @DisplayName("Should calculate factorial correctly for various inputs")
+        void testFactorialParameterized(int number, long expected) {
+            assertEquals(expected, calculator.factorial(number));
+        }
+    }
+
+    @Nested
+    @DisplayName("Is Even Tests")
+    class IsEvenTests {
+
+        @Test
+        @DisplayName("Should return true for even numbers")
+        void testIsEvenTrue() {
+            assertTrue(calculator.isEven(0));
+            assertTrue(calculator.isEven(2));
+            assertTrue(calculator.isEven(4));
+            assertTrue(calculator.isEven(100));
+        }
+
+        @Test
+        @DisplayName("Should return false for odd numbers")
+        void testIsEvenFalse() {
+            assertFalse(calculator.isEven(1));
+            assertFalse(calculator.isEven(3));
+            assertFalse(calculator.isEven(5));
+            assertFalse(calculator.isEven(99));
+        }
+
+        @Test
+        @DisplayName("Should handle negative numbers correctly")
+        void testIsEvenNegative() {
+            assertTrue(calculator.isEven(-2));
+            assertTrue(calculator.isEven(-4));
+            assertFalse(calculator.isEven(-1));
+            assertFalse(calculator.isEven(-3));
+        }
+    }
+
+    @Nested
+    @DisplayName("Is Prime Tests")
+    class IsPrimeTests {
+
+        @Test
+        @DisplayName("Should return false for numbers less than or equal to 1")
+        void testIsPrimeLessThanTwo() {
+            assertFalse(calculator.isPrime(-5));
+            assertFalse(calculator.isPrime(0));
+            assertFalse(calculator.isPrime(1));
+        }
+
+        @Test
+        @DisplayName("Should return true for 2")
+        void testIsPrimeTwo() {
+            assertTrue(calculator.isPrime(2));
+        }
+
+        @Test
+        @DisplayName("Should return true for prime numbers")
+        void testIsPrimeTrue() {
+            assertTrue(calculator.isPrime(3));
+            assertTrue(calculator.isPrime(5));
+            assertTrue(calculator.isPrime(7));
+            assertTrue(calculator.isPrime(11));
+            assertTrue(calculator.isPrime(13));
+            assertTrue(calculator.isPrime(17));
+            assertTrue(calculator.isPrime(19));
+        }
+
+        @Test
+        @DisplayName("Should return false for non-prime numbers")
+        void testIsPrimeFalse() {
+            assertFalse(calculator.isPrime(4));
+            assertFalse(calculator.isPrime(6));
+            assertFalse(calculator.isPrime(8));
+            assertFalse(calculator.isPrime(9));
+            assertFalse(calculator.isPrime(10));
+            assertFalse(calculator.isPrime(15));
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31})
+        @DisplayName("Should correctly identify prime numbers")
+        void testIsPrimeParameterized(int number) {
+            assertTrue(calculator.isPrime(number));
+        }
+    }
+
+    @Nested
+    @DisplayName("Max Tests")
+    class MaxTests {
+
+        @Test
+        @DisplayName("Should return larger of two positive numbers")
+        void testMaxPositive() {
+            assertEquals(10, calculator.max(5, 10));
+            assertEquals(10, calculator.max(10, 5));
+        }
+
+        @Test
+        @DisplayName("Should return same value when both numbers are equal")
+        void testMaxEqual() {
+            assertEquals(5, calculator.max(5, 5));
+        }
+
+        @Test
+        @DisplayName("Should handle negative numbers")
+        void testMaxNegative() {
+            assertEquals(5, calculator.max(-5, 5));
+            assertEquals(-5, calculator.max(-10, -5));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "1, 2, 2",
+            "10, 5, 10",
+            "-5, -10, -5",
+            "0, 0, 0"
+        })
+        @DisplayName("Should find maximum correctly for various inputs")
+        void testMaxParameterized(int first, int second, int expected) {
+            assertEquals(expected, calculator.max(first, second));
+        }
+    }
+
+    @Nested
+    @DisplayName("Min Tests")
+    class MinTests {
+
+        @Test
+        @DisplayName("Should return smaller of two positive numbers")
+        void testMinPositive() {
+            assertEquals(5, calculator.min(5, 10));
+            assertEquals(5, calculator.min(10, 5));
+        }
+
+        @Test
+        @DisplayName("Should return same value when both numbers are equal")
+        void testMinEqual() {
+            assertEquals(5, calculator.min(5, 5));
+        }
+
+        @Test
+        @DisplayName("Should handle negative numbers")
+        void testMinNegative() {
+            assertEquals(-5, calculator.min(-5, 5));
+            assertEquals(-10, calculator.min(-10, -5));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "1, 2, 1",
+            "10, 5, 5",
+            "-5, -10, -10",
+            "0, 0, 0"
+        })
+        @DisplayName("Should find minimum correctly for various inputs")
+        void testMinParameterized(int first, int second, int expected) {
+            assertEquals(expected, calculator.min(first, second));
+        }
+    }
 }
