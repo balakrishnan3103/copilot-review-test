@@ -207,14 +207,24 @@ jobs:
               // Set workflow as failed
               core.setFailed(`Code review found ${issueCount} issue(s) that need attention`);
             } else {
-              // Approve the PR
+              // Post a positive review comment (Actions can't approve)
               await github.rest.pulls.createReview({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: context.issue.number,
-                event: 'APPROVE',
+                event: 'COMMENT',
                 body: `## ✅ Automated Code Review Passed\n\n**No issues found!** 🎉\n\nAll code follows the guidelines in [\`.github/copilot-instructions.md\`](.github/copilot-instructions.md)\n\n### Checks Passed\n- ✅ No \`System.out.println\` usage\n- ✅ Proper exception handling\n- ✅ No empty catch blocks\n- ✅ Clean code patterns\n\nGreat work! This PR is ready for human review.`
               });
               
-              console.log('✅ Review approved - no issues found');
+              console.log('✅ Review completed - no issues found');
             }
+
+      - name: Review Summary
+        if: always()
+        run: |
+          echo "=================================================="
+          echo "Automated Code Review Complete"
+          echo "=================================================="
+          echo ""
+          echo "Check the PR for detailed review comments."
+          echo ""
