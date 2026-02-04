@@ -174,4 +174,87 @@ public class Calculator {
     public void logResult(int result) {
         logger.info("Calculation result: {}", result);
     }
+
+    /**
+     * Calculates the factorial of a non-negative integer.
+     *
+     * @param number the number to calculate factorial for
+     * @return the factorial of the number
+     * @throws IllegalArgumentException if number is negative
+     */
+    public long factorial(int number) {
+        if (number < 0) {
+            logger.error("Factorial of negative number attempted: {}", number);
+            throw new IllegalArgumentException("Cannot calculate factorial of negative number: " + number);
+        }
+        if (number == 0 || number == 1) {
+            return 1;
+        }
+        long result = 1;
+        for (int i = 2; i <= number; i++) {
+            result *= i;
+        }
+        logger.debug("Factorial of {} is {}", number, result);
+        return result;
+    }
+
+    /**
+     * Checks if a number is even.
+     *
+     * @param number the number to check
+     * @return true if the number is even, false otherwise
+     */
+    public boolean isEven(int number) {
+        logger.debug("Checking if {} is even", number);
+        return number % 2 == 0;
+    }
+
+    /**
+     * Checks if a number is prime.
+     *
+     * @param number the number to check
+     * @return true if the number is prime, false otherwise
+     */
+    public boolean isPrime(int number) {
+        if (number <= 1) {
+            return false;
+        }
+        if (number == 2) {
+            return true;
+        }
+        if (number % 2 == 0) {
+            return false;
+        }
+        for (int i = 3; i <= Math.sqrt(number); i += 2) {
+            if (number % i == 0) {
+                return false;
+            }
+        }
+        logger.debug("{} is prime", number);
+        return true;
+    }
+
+    /**
+     * Calculates the maximum of two numbers.
+     *
+     * @param firstNumber the first number
+     * @param secondNumber the second number
+     * @return the maximum of the two numbers
+     */
+    public int max(int firstNumber, int secondNumber) {
+        logger.debug("Finding max of {} and {}", firstNumber, secondNumber);
+        return Math.max(firstNumber, secondNumber);
+    }
+
+    /**
+     * Calculates the minimum of two numbers.
+     *
+     * @param firstNumber the first number
+     * @param secondNumber the second number
+     * @return the minimum of the two numbers
+     */
+    public int min(int firstNumber, int secondNumber) {
+        logger.debug("Finding min of {} and {}", firstNumber, secondNumber);
+        return Math.min(firstNumber, secondNumber);
+    }
 }
